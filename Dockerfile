@@ -1,23 +1,8 @@
-# Use a lightweight base image
 FROM alpine
-
-# Install Node.js and npm
-RUN apk add --no-cache nodejs npm
-
-# Set working directory
-WORKDIR /src
-
-# Copy package files first (for efficient caching)
-COPY package*.json ./
-
-# Install dependencies (e.g., express and others)
+RUN apk add --update nodejs npm
+COPY package*.json /app/
+WORKDIR /app
 RUN npm install
-
-# Copy the rest of the application code
-COPY . .
-
-# Expose application port
+COPY . /app
 EXPOSE 3000
-
-# Start the application
-CMD ["node", "app.js"]
+ENTRYPOINT ["node", "src/app.js"]
