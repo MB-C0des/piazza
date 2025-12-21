@@ -5,7 +5,7 @@ FROM alpine
 RUN apk add --no-cache nodejs npm
 
 # Set working directory
-WORKDIR /src
+WORKDIR /app
 
 # Copy package files first (for efficient caching)
 COPY package*.json ./
@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "app.js"]
+CMD ["node", "src/app.js"]
