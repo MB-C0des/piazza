@@ -1,10 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
 
 // Load environment variables
 dotenv.config();
+
+// Ensure critical env is present
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set. Exiting.');
+  process.exit(1);
+}
 
 // Connect to database
 connectDB();
@@ -12,14 +20,26 @@ connectDB();
 // Initialise express app
 const app = express();
 
-// Middleware
+// Security middleware
+app.use(helmet());
+
+// Basic rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/', apiLimiter);
+
+// Common middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
+// Request logging middleware (use originalUrl to include query)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   next();
 });
 
@@ -84,16 +104,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// Start server only if this file is run directly (prevents server starting when required in tests)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`
-
-Piazza API Server is up and running...
-Environment: ${process.env.NODE_ENV || 'development'}
-Port: ${PORT}
-Database: MongoDB
-  `);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`
+    
+ Piazza API Server is up and running...
+ Environment: ${process.env.NODE_ENV || 'development'}
+ Port: ${PORT}
+ Database: MongoDB
+   `);
+  });
+}
 
 module.exports = app;

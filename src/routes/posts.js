@@ -20,12 +20,14 @@ const { validatePost, validateComment, validateTopic } = require('../middleware/
 // General post routes
 router.post('/', protect, validatePost, createPost);
 router.get('/', protect, getAllPosts);
-router.get('/:id', protect, getPost);
 
-// Topic-based routes
+// Topic-based routes (specific routes must be declared before generic '/:id' to avoid shadowing)
 router.get('/topic/:topic', protect, validateTopic, getPostsByTopic);
 router.get('/topic/:topic/expired', protect, validateTopic, getExpiredPostsByTopic);
 router.get('/topic/:topic/most-active', protect, validateTopic, getMostActivePost);
+
+// Single post route (generic param after specific topic routes)
+router.get('/:id', protect, getPost);
 
 // Interaction routes
 router.post('/:id/like', protect, likePost);

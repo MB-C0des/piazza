@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -36,19 +35,25 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+// Use async hook without calling next() — returning implicitly signals completion to Mongoose
+userSchema.pre('save', async function() {
   // Only hash if password is modified
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
-  
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  // Note: ensure that when calling this method, the document was queried with '+password'
+  // e.g. User.findOne({ email }).select('+password')
+  if (!this.password) {
+    // Password was not selected - cannot compare
+    throw new Error('Password not available for comparison. Ensure password is selected in the query.');
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

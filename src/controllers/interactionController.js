@@ -1,6 +1,5 @@
 const Post = require('../models/Post');
 
-
 // @desc    Like a post
 // @route   POST /api/posts/:id/like
 // @access  Private
@@ -27,15 +26,15 @@ const likePost = async (req, res) => {
     }
 
     // Check if user is post owner
-    if (post.owner.toString() === req.user._id.toString()) {
+    if (String(post.owner) === String(req.user._id)) {
       return res.status(400).json({
         success: false,
         error: 'You cannot like your own post'
       });
     }
 
-    // Check if user already liked
-    if (post.likedBy.includes(req.user._id)) {
+    // Check if user already liked (compare IDs as strings)
+    if (post.likedBy.some(userId => String(userId) === String(req.user._id))) {
       return res.status(400).json({
         success: false,
         error: 'You have already liked this post'
@@ -43,16 +42,16 @@ const likePost = async (req, res) => {
     }
 
     // Remove dislike if exists
-    if (post.dislikedBy.includes(req.user._id)) {
+    if (post.dislikedBy.some(userId => String(userId) === String(req.user._id))) {
       post.dislikedBy = post.dislikedBy.filter(
-        userId => userId.toString() !== req.user._id.toString()
+        userId => String(userId) !== String(req.user._id)
       );
-      post.dislikes -= 1;
+      post.dislikes = Math.max(0, post.dislikes - 1);
     }
 
     // Add like
     post.likedBy.push(req.user._id);
-    post.likes += 1;
+    post.likes = (post.likes || 0) + 1;
 
     await post.save();
 
@@ -99,7 +98,7 @@ const dislikePost = async (req, res) => {
     }
 
     // Check if user is post owner
-    if (post.owner.toString() === req.user._id.toString()) {
+    if (String(post.owner) === String(req.user._id)) {
       return res.status(400).json({
         success: false,
         error: 'You cannot dislike your own post'
@@ -107,7 +106,7 @@ const dislikePost = async (req, res) => {
     }
 
     // Check if user already disliked
-    if (post.dislikedBy.includes(req.user._id)) {
+    if (post.dislikedBy.some(userId => String(userId) === String(req.user._id))) {
       return res.status(400).json({
         success: false,
         error: 'You have already disliked this post'
@@ -115,16 +114,16 @@ const dislikePost = async (req, res) => {
     }
 
     // Remove like if exists
-    if (post.likedBy.includes(req.user._id)) {
+    if (post.likedBy.some(userId => String(userId) === String(req.user._id))) {
       post.likedBy = post.likedBy.filter(
-        userId => userId.toString() !== req.user._id.toString()
+        userId => String(userId) !== String(req.user._id)
       );
-      post.likes -= 1;
+      post.likes = Math.max(0, post.likes - 1);
     }
 
     // Add dislike
     post.dislikedBy.push(req.user._id);
-    post.dislikes += 1;
+    post.dislikes = (post.dislikes || 0) + 1;
 
     await post.save();
 

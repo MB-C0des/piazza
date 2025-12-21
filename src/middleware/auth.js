@@ -1,10 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET is not set. Exiting.');
+  process.exit(1);
+}
+
 const protect = async (req, res, next) => {
   let token;
 
-  // Check for token in Authorisation header
+  // Check for token in Authorization header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
