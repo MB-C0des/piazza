@@ -14,24 +14,6 @@ Analytics - Find most active posts per topic
 History - Browse expired posts
 
 
-Project Structure
-
-piazza/
-├── src/
-│   ├── models/              # Database schemas
-│   ├── middleware/          # Auth & validation
-│   ├── routes/              # API routes
-│   ├── controllers/         # Controllers
-│   ├── config/              # Configuration
-│   └── app.js               # Application entry
-├── tests/                   # Test suite
-├── kubernetes/              # K8s configs
-├── .env                     # Environment vars
-├── Dockerfile               # Container definition
-├── docker-compose.yml       # Multi-container setup
-└── package.json             # Dependencies
-
-
 RESTful API design
 
 MongoDB database
